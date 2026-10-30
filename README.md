@@ -152,7 +152,7 @@ ip access-list standard NAT-INTERNAL
  permit 10.96.0.0 0.3.255.255
  deny any
 exit
-ip nat inside source list NAT-INTERNAL interface GigabitEthernet0/0 overload
+ip nat inside source list NAT-INTERNAL interface FastEthernet0/0 overload
 end
 write memory
 ```
@@ -379,8 +379,44 @@ write memory
 
     Dari foto diatas kita bisa tahu bahwa konfigurasi NAT di R-PUSAT bekerja dengan benar karena R-ISP memang sengaja tidak diberi rute statis ke jaringan internal.
 
- 
+- Pengujian di PC
+
+  - Tes Antar-LAN 1:
+    Dari PC-Puskesmas-Barat ping ke PC-Scada-Pelabuhan:
     
+    ```ping 10.96.128.2```
+    
+    <img width="795" height="268" alt="image" src="https://github.com/user-attachments/assets/e1aeb33c-2e03-4f57-bda2-3586a7c9ef60" />
+
+  - Tes Antar-LAN 2:
+    Dari PC-Cctv-Kota ping ke PC-Sensor-Banjir:
+
+    ```ping 10.97.32.2```
+
+    <img width="762" height="266" alt="image" src="https://github.com/user-attachments/assets/515c6e1b-a4ac-4c8b-b9e7-16a4654295a9" />
+
+  - Tes jalur tracert
+    Dari PC-Kantor-Pelabuhan ke PC-Pegawai-Bk, harusnya lewat R-UTARA (10.96.192.1) dan R-PUSAT(10.98.194.1).
+
+    ```tracert 10.99.0.2```
+
+    <img width="635" height="213" alt="image" src="https://github.com/user-attachments/assets/314903fc-807e-4b0b-9e85-cab1e3a69bb7" />
+
+    Dari foto diatas kita bisa melihat bahwa jalur yang dilewati PC-Kantor-Pelabuhan ke PC-Pegawai-Bk berhasil melewati R-UTARA (10.96.192.1) dan R-PUSAT(10.98.194.1).
+
+  - Tes internet
+
+    ```ping 8.8.8.8```
+
+    <img width="703" height="267" alt="image" src="https://github.com/user-attachments/assets/dc8bc56e-6258-44e3-9f66-2c9e0fcc5ff4" />
+
+
+
+    
+
+
+    
+
 
   
 
