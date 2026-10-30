@@ -12,21 +12,23 @@ Kita diminta untuk membuat topologi sesuai dengan skema CIDR yang telah dibuat.
     (soal: cukup 1 perangkat per LAN). LAN WiFi Publik: switch + Access Point
     + 1 laptop wireless.
   - Nama perangkat (sesuai soal: ganti nama bawaan):
-      LAN                          Switch               Perangkat perwakilan
-      Pegawai Balai Kota           SW-PEGAWAI-BK        PC-PEGAWAI-BK
-      Server Balai Kota            SW-SERVER-BK         SRV-BALAIKOTA
-      CCTV Kota                    SW-CCTV-KOTA         PC-CCTV-KOTA
-      Server dan Storage DC        SW-SERVER-DC         SRV-DC
-      WiFi Publik Utara            SW-WIFI-UTARA        AP-WIFI-UTARA + LAPTOP-WIFI-UTARA
-      Sensor Lalu Lintas Utara     SW-SENSOR-LALIN      PC-SENSOR-LALIN
-      Sensor dan SCADA Pelabuhan   SW-SCADA-PELABUHAN   PC-SCADA-PELABUHAN
-      Kantor Pelabuhan             SW-KANTOR-PELABUHAN  PC-KANTOR-PELABUHAN
-      WiFi Publik Selatan          SW-WIFI-SELATAN      AP-WIFI-SELATAN + LAPTOP-WIFI-SELATAN
-      PJU Pintar Selatan           SW-PJU-SELATAN       PC-PJU-SELATAN
-      WiFi Publik Timur            SW-WIFI-TIMUR        AP-WIFI-TIMUR + LAPTOP-WIFI-TIMUR
-      Sensor Banjir Timur          SW-SENSOR-BANJIR     PC-SENSOR-BANJIR
-      WiFi Publik Barat            SW-WIFI-BARAT        AP-WIFI-BARAT + LAPTOP-WIFI-BARAT
-      Puskesmas dan Sekolah Barat  SW-PUSKESMAS-BARAT   PC-PUSKESMAS-BARAT
+    
+    | LAN | Switch | Perangkat perwakilan |
+    |---|---|---|
+    | Pegawai Balai Kota | SW-PEGAWAI-BK | PC-PEGAWAI-BK |
+    | Server Balai Kota | SW-SERVER-BK | SRV-BALAIKOTA |
+    | CCTV Kota | SW-CCTV-KOTA | PC-CCTV-KOTA |
+    | Server dan Storage DC | SW-SERVER-DC | SRV-DC |
+    | WiFi Publik Utara | SW-WIFI-UTARA | AP-WIFI-UTARA + LAPTOP-WIFI-UTARA |
+    | Sensor Lalu Lintas Utara | SW-SENSOR-LALIN | PC-SENSOR-LALIN |
+    | Sensor dan SCADA Pelabuhan | SW-SCADA-PELABUHAN | PC-SCADA-PELABUHAN |
+    | Kantor Pelabuhan | SW-KANTOR-PELABUHAN | PC-KANTOR-PELABUHAN |
+    | WiFi Publik Selatan | SW-WIFI-SELATAN | AP-WIFI-SELATAN + LAPTOP-WIFI-SELATAN |
+    | PJU Pintar Selatan | SW-PJU-SELATAN | PC-PJU-SELATAN |
+    | WiFi Publik Timur | SW-WIFI-TIMUR | AP-WIFI-TIMUR + LAPTOP-WIFI-TIMUR |
+    | Sensor Banjir Timur | SW-SENSOR-BANJIR | PC-SENSOR-BANJIR |
+    | WiFi Publik Barat | SW-WIFI-BARAT | AP-WIFI-BARAT + LAPTOP-WIFI-BARAT |
+    | Puskesmas dan Sekolah Barat | SW-PUSKESMAS-BARAT | PC-PUSKESMAS-BARAT |
  
 Kabel
   - Router ke router (L1-L6, R-ISP ke R-PUSAT)  : Copper Cross-Over
@@ -324,6 +326,58 @@ write memory
 ```
 
 <img width="934" height="656" alt="image" src="https://github.com/user-attachments/assets/b97f90b4-fcec-499c-a57d-d0dc55495fca" />
+
+### Pengujian 
+
+- Pengujian di CLI Router
+
+  - Di semua router
+
+    Memastikan semua port up/up
+
+    ```show ip interface brief```
+
+    Mencocokan rute dengan tabel
+
+    ```show ip route static```
+    
+    <img width="905" height="248" alt="image" src="https://github.com/user-attachments/assets/1b061e96-89ec-4538-9b75-408f06c0bef3" />
+
+    <img width="878" height="215" alt="image" src="https://github.com/user-attachments/assets/07d16172-c132-446d-b94b-aa0b263ffcdd" />
+
+- Pengujian di Router Pusat
+  
+  - Mengecek default route ke R-ISP
+
+    ```show ip route | include 0.0.0.0```
+
+  - Cek fungsi NAT
+ 
+    ```show ip nat translations```
+
+    ```show ip nat statistics```
+
+  <img width="917" height="265" alt="image" src="https://github.com/user-attachments/assets/b29ff48b-212c-499f-a713-a25c78b2b076" />
+
+- Pengujin di R-ISP
+  
+  - Memastikan tidak ada rute ke IP Private
+ 
+    ```show ip route```
+
+    <img width="897" height="295" alt="image" src="https://github.com/user-attachments/assets/41da870b-95ba-4329-b180-d606a04f1ca2" />
+
+    Dari foto tersebut kita bisa melihat bahwa konfigurasi NAT di R-Pusat berhasil karena tidak adanya rute privat.
+
+  - Lakukan ping ke salah satu alamat privat yang hasilnya harus gagal
+  - 
+ 
+    
+
+  
+
+  
+
 
 
 
