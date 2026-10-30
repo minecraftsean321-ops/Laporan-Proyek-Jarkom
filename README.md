@@ -1,6 +1,6 @@
 # Laporan-Proyek-Jarkom-
 
-## Soal no 1.
+## Soal no 1,3 dan 5 (Sean)
 
 ### Step pertama buat topologinya
 
@@ -54,6 +54,84 @@ Pertimbangan desain (bahan dokumentasi)
      R-UTARA: 5 port termasuk cadangan L7, R-DC: 4 port termasuk L7).
   5. Server (SRV-DC, SRV-BALAIKOTA) ditempatkan di LAN tersendiri supaya
      layanan terpisah dari perangkat pengguna.
+
+# Skema CIDR - Kelompok 12
+
+## Tabel Interface dan IP
+
+| Router | Port | IP Address | Mask | Prefix | Tersambung ke |
+|---|---|---|---|---|---|
+| R-ISP | Gi0/0 | 203.0.113.49 | 255.255.255.252 | /30 | KE R-PUSAT |
+| R-ISP | Gi0/1 | 8.8.8.1 | 255.255.255.0 | /24 | KE SERVER 8.8.8.8 |
+| R-PUSAT | Gi0/0 | 203.0.113.50 | 255.255.255.252 | /30 | KE R-ISP |
+| R-PUSAT | Gi0/1 | 10.98.64.1 | 255.255.255.252 | /30 | L1 KE R-DC |
+| R-PUSAT | Gi0/2 | 10.98.194.1 | 255.255.255.252 | /30 | L2 KE R-UTARA |
+| R-PUSAT | Gi0/3 | 10.97.192.1 | 255.255.255.252 | /30 | L3 KE R-SELATAN |
+| R-PUSAT | Gi0/4 | 10.97.64.1 | 255.255.255.252 | /30 | L4 KE R-TIMUR |
+| R-PUSAT | Gi0/5 | 10.96.64.1 | 255.255.255.252 | /30 | L5 KE R-BARAT |
+| R-PUSAT | Gi0/6 | 10.99.0.1 | 255.255.248.0 | /21 | LAN Pegawai Balai Kota |
+| R-PUSAT | Gi0/7 | 10.99.8.1 | 255.255.255.224 | /27 | LAN Server Balai Kota |
+| R-DC | Gi0/0 | 10.98.64.2 | 255.255.255.252 | /30 | L1 KE R-PUSAT |
+| R-DC | Gi0/1 | 10.98.0.1 | 255.255.224.0 | /19 | LAN CCTV Kota |
+| R-DC | Gi0/2 | 10.98.32.1 | 255.255.255.0 | /24 | LAN Server & Storage DC |
+| R-DC | Gi0/3 | 10.99.8.33 | 255.255.255.252 | /30 | L7 KE R-UTARA *(hanya file OSPF, Soal 7)* |
+| R-UTARA | Gi0/0 | 10.98.194.2 | 255.255.255.252 | /30 | L2 KE R-PUSAT |
+| R-UTARA | Gi0/1 | 10.96.192.1 | 255.255.255.252 | /30 | L6 KE R-PELABUHAN |
+| R-UTARA | Gi0/2 | 10.98.128.1 | 255.255.192.0 | /18 | LAN WiFi Publik Utara |
+| R-UTARA | Gi0/3 | 10.98.192.1 | 255.255.254.0 | /23 | LAN Sensor Lalu Lintas Utara |
+| R-UTARA | Gi0/4 | 10.99.8.34 | 255.255.255.252 | /30 | L7 KE R-DC *(hanya file OSPF, Soal 7)* |
+| R-PELABUHAN | Gi0/0 | 10.96.192.2 | 255.255.255.252 | /30 | L6 KE R-UTARA |
+| R-PELABUHAN | Gi0/1 | 10.96.128.1 | 255.255.224.0 | /19 | LAN Sensor & SCADA Pelabuhan |
+| R-PELABUHAN | Gi0/2 | 10.96.160.1 | 255.255.255.128 | /25 | LAN Kantor Pelabuhan |
+| R-SELATAN | Gi0/0 | 10.97.192.2 | 255.255.255.252 | /30 | L3 KE R-PUSAT |
+| R-SELATAN | Gi0/1 | 10.97.128.1 | 255.255.224.0 | /19 | LAN WiFi Publik Selatan |
+| R-SELATAN | Gi0/2 | 10.97.160.1 | 255.255.255.128 | /25 | LAN PJU Pintar Selatan |
+| R-TIMUR | Gi0/0 | 10.97.64.2 | 255.255.255.252 | /30 | L4 KE R-PUSAT |
+| R-TIMUR | Gi0/1 | 10.97.0.1 | 255.255.224.0 | /19 | LAN WiFi Publik Timur |
+| R-TIMUR | Gi0/2 | 10.97.32.1 | 255.255.252.0 | /22 | LAN Sensor Banjir Timur |
+| R-BARAT | Gi0/0 | 10.96.64.2 | 255.255.255.252 | /30 | L5 KE R-PUSAT |
+| R-BARAT | Gi0/1 | 10.96.0.1 | 255.255.224.0 | /19 | LAN WiFi Publik Barat |
+| R-BARAT | Gi0/2 | 10.96.32.1 | 255.255.255.0 | /24 | LAN Puskesmas & Sekolah Barat |
+
+## Label LAN
+
+| Switch | Nama Subnet | Network ID/Prefix | Jumlah Host |
+|---|---|---|---|
+| SW-PEGAWAI-BK | Pegawai Balai Kota | 10.99.0.0/21 | 1.800 |
+| SW-SERVER-BK | Server Balai Kota | 10.99.8.0/27 | 20 |
+| SW-CCTV-KOTA | CCTV Kota | 10.98.0.0/19 | 6.000 |
+| SW-SERVER-DC | Server & Storage DC | 10.98.32.0/24 | 180 |
+| SW-WIFI-UTARA | WiFi Publik Utara | 10.98.128.0/18 | 11.000 |
+| SW-SENSOR-LALIN | Sensor Lalu Lintas Utara | 10.98.192.0/23 | 450 |
+| SW-SCADA-PELABUHAN | Sensor & SCADA Pelabuhan | 10.96.128.0/19 | 5.000 |
+| SW-KANTOR-PELABUHAN | Kantor Pelabuhan | 10.96.160.0/25 | 120 |
+| SW-WIFI-SELATAN | WiFi Publik Selatan | 10.97.128.0/19 | 6.500 |
+| SW-PJU-SELATAN | PJU Pintar Selatan | 10.97.160.0/25 | 90 |
+| SW-WIFI-TIMUR | WiFi Publik Timur | 10.97.0.0/19 | 5.500 |
+| SW-SENSOR-BANJIR | Sensor Banjir Timur | 10.97.32.0/22 | 700 |
+| SW-WIFI-BARAT | WiFi Publik Barat | 10.96.0.0/19 | 4.500 |
+| SW-PUSKESMAS-BARAT | Puskesmas & Sekolah Barat | 10.96.32.0/24 | 220 |
+
+## Static Route
+
+| Router | Network Tujuan | Next Hop | Keterangan |
+|---|---|---|---|
+| R-PUSAT | 0.0.0.0/0 | 203.0.113.49 | default ke R-ISP |
+| R-PUSAT | 10.98.0.0/17 | 10.98.64.2 | ke R-DC |
+| R-PUSAT | 10.98.128.0/17 | 10.98.194.2 | ke R-UTARA |
+| R-PUSAT | 10.96.128.0/17 | 10.98.194.2 | ke R-PELABUHAN |
+| R-PUSAT | 10.97.128.0/17 | 10.97.192.2 | ke R-SELATAN |
+| R-PUSAT | 10.97.0.0/17 | 10.97.64.2 | ke R-TIMUR |
+| R-PUSAT | 10.96.0.0/17 | 10.96.64.2 | ke R-BARAT |
+| R-UTARA | 0.0.0.0/0 | 10.98.194.1 | default ke R-PUSAT |
+| R-UTARA | 10.96.128.0/17 | 10.96.192.2 | ke R-PELABUHAN |
+| R-DC | 0.0.0.0/0 | 10.98.64.1 | default ke R-PUSAT |
+| R-BARAT | 0.0.0.0/0 | 10.96.64.1 | default ke R-PUSAT |
+| R-TIMUR | 0.0.0.0/0 | 10.97.64.1 | default ke R-PUSAT |
+| R-SELATAN | 0.0.0.0/0 | 10.97.192.1 | default ke R-PUSAT |
+| R-PELABUHAN | 0.0.0.0/0 | 10.96.192.1 | default ke R-UTARA |
+
+Proyek ini menggunakan skema CIDR karena konfigurasi static route pada R-PUSAT menjadi lebih efisien dan ringkas (hanya membutuhkan satu prefix rute per cabang atau router distribusi) dibandingkan dengan skema VLSM.
 
 ### Masukkan skrip ke setiap Router
 
