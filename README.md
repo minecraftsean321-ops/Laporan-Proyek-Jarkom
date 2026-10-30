@@ -370,7 +370,15 @@ write memory
     Dari foto tersebut kita bisa melihat bahwa konfigurasi NAT di R-Pusat berhasil karena tidak adanya rute privat.
 
   - Lakukan ping ke salah satu alamat privat yang hasilnya harus gagal
-  - 
+    
+    Disini aku melakukan ping ke PC-Pegawai-Bk
+ 
+    ```ping 10.99.0.2```
+    
+    <img width="893" height="125" alt="image" src="https://github.com/user-attachments/assets/1161e3b1-e9ba-419c-a148-327a3629e680" />
+
+    Dari foto diatas kita bisa tahu bahwa konfigurasi NAT di R-PUSAT bekerja dengan benar karena R-ISP memang sengaja tidak diberi rute statis ke jaringan internal.
+
  
     
 
