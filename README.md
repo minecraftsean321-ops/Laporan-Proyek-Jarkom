@@ -48,7 +48,7 @@ Pertimbangan desain (bahan dokumentasi)
   2. LAN WiFi Publik memakai AP dan perangkat wireless karena penggunanya
      publik dan bergerak, sedangkan LAN lain memakai kabel karena perangkat
      tetap (server, CCTV, sensor, SCADA, PC kantor) dan butuh koneksi stabil.
-  3. Backbone antar-router memakai copper Gigabit (cross-over) mengikuti
+  3. Backbone antar-router memakai copper FastEthernet (cross-over) mengikuti
      Gambar 1. Tiap link memakai /30 agar hemat alamat.
   4. Router ditambah modul port sampai jumlah port cukup (R-PUSAT: 8 port,
      R-UTARA: 5 port termasuk cadangan L7, R-DC: 4 port termasuk L7).
@@ -61,37 +61,35 @@ Pertimbangan desain (bahan dokumentasi)
 
 | Router | Port | IP Address | Mask | Prefix | Tersambung ke |
 |---|---|---|---|---|---|
-| R-ISP | Gi0/0 | 203.0.113.49 | 255.255.255.252 | /30 | KE R-PUSAT |
-| R-ISP | Gi0/1 | 8.8.8.1 | 255.255.255.0 | /24 | KE SERVER 8.8.8.8 |
-| R-PUSAT | Gi0/0 | 203.0.113.50 | 255.255.255.252 | /30 | KE R-ISP |
-| R-PUSAT | Gi0/1 | 10.98.64.1 | 255.255.255.252 | /30 | L1 KE R-DC |
-| R-PUSAT | Gi0/2 | 10.98.194.1 | 255.255.255.252 | /30 | L2 KE R-UTARA |
-| R-PUSAT | Gi0/3 | 10.97.192.1 | 255.255.255.252 | /30 | L3 KE R-SELATAN |
-| R-PUSAT | Gi0/4 | 10.97.64.1 | 255.255.255.252 | /30 | L4 KE R-TIMUR |
-| R-PUSAT | Gi0/5 | 10.96.64.1 | 255.255.255.252 | /30 | L5 KE R-BARAT |
-| R-PUSAT | Gi0/6 | 10.99.0.1 | 255.255.248.0 | /21 | LAN Pegawai Balai Kota |
-| R-PUSAT | Gi0/7 | 10.99.8.1 | 255.255.255.224 | /27 | LAN Server Balai Kota |
-| R-DC | Gi0/0 | 10.98.64.2 | 255.255.255.252 | /30 | L1 KE R-PUSAT |
-| R-DC | Gi0/1 | 10.98.0.1 | 255.255.224.0 | /19 | LAN CCTV Kota |
-| R-DC | Gi0/2 | 10.98.32.1 | 255.255.255.0 | /24 | LAN Server & Storage DC |
-| R-DC | Gi0/3 | 10.99.8.33 | 255.255.255.252 | /30 | L7 KE R-UTARA *(hanya file OSPF, Soal 7)* |
-| R-UTARA | Gi0/0 | 10.98.194.2 | 255.255.255.252 | /30 | L2 KE R-PUSAT |
-| R-UTARA | Gi0/1 | 10.96.192.1 | 255.255.255.252 | /30 | L6 KE R-PELABUHAN |
-| R-UTARA | Gi0/2 | 10.98.128.1 | 255.255.192.0 | /18 | LAN WiFi Publik Utara |
-| R-UTARA | Gi0/3 | 10.98.192.1 | 255.255.254.0 | /23 | LAN Sensor Lalu Lintas Utara |
-| R-UTARA | Gi0/4 | 10.99.8.34 | 255.255.255.252 | /30 | L7 KE R-DC *(hanya file OSPF, Soal 7)* |
-| R-PELABUHAN | Gi0/0 | 10.96.192.2 | 255.255.255.252 | /30 | L6 KE R-UTARA |
-| R-PELABUHAN | Gi0/1 | 10.96.128.1 | 255.255.224.0 | /19 | LAN Sensor & SCADA Pelabuhan |
-| R-PELABUHAN | Gi0/2 | 10.96.160.1 | 255.255.255.128 | /25 | LAN Kantor Pelabuhan |
-| R-SELATAN | Gi0/0 | 10.97.192.2 | 255.255.255.252 | /30 | L3 KE R-PUSAT |
-| R-SELATAN | Gi0/1 | 10.97.128.1 | 255.255.224.0 | /19 | LAN WiFi Publik Selatan |
-| R-SELATAN | Gi0/2 | 10.97.160.1 | 255.255.255.128 | /25 | LAN PJU Pintar Selatan |
-| R-TIMUR | Gi0/0 | 10.97.64.2 | 255.255.255.252 | /30 | L4 KE R-PUSAT |
-| R-TIMUR | Gi0/1 | 10.97.0.1 | 255.255.224.0 | /19 | LAN WiFi Publik Timur |
-| R-TIMUR | Gi0/2 | 10.97.32.1 | 255.255.252.0 | /22 | LAN Sensor Banjir Timur |
-| R-BARAT | Gi0/0 | 10.96.64.2 | 255.255.255.252 | /30 | L5 KE R-PUSAT |
-| R-BARAT | Gi0/1 | 10.96.0.1 | 255.255.224.0 | /19 | LAN WiFi Publik Barat |
-| R-BARAT | Gi0/2 | 10.96.32.1 | 255.255.255.0 | /24 | LAN Puskesmas & Sekolah Barat |
+| R-ISP | Fa0/0 | 203.0.113.49 | 255.255.255.252 | /30 | KE R-PUSAT |
+| R-ISP | Fa1/0 | 8.8.8.1 | 255.255.255.0 | /24 | KE SERVER 8.8.8.8 |
+| R-PUSAT | Fa0/0 | 203.0.113.50 | 255.255.255.252 | /30 | KE R-ISP |
+| R-PUSAT | Fa1/0 | 10.98.64.1 | 255.255.255.252 | /30 | L1 KE R-DC |
+| R-PUSAT | Fa7/0 | 10.98.194.1 | 255.255.255.252 | /30 | L2 KE R-UTARA |
+| R-PUSAT | Fa9/0 | 10.97.192.1 | 255.255.255.252 | /30 | L3 KE R-SELATAN |
+| R-PUSAT | Fa8/0 | 10.97.64.1 | 255.255.255.252 | /30 | L4 KE R-TIMUR |
+| R-PUSAT | Fa6/0 | 10.96.64.1 | 255.255.255.252 | /30 | L5 KE R-BARAT |
+| R-PUSAT | Fa5/0 | 10.99.0.1 | 255.255.248.0 | /21 | LAN Pegawai Balai Kota |
+| R-PUSAT | Fa4/0 | 10.99.8.1 | 255.255.255.224 | /27 | LAN Server Balai Kota |
+| R-DC | Fa0/0 | 10.98.64.2 | 255.255.255.252 | /30 | L1 KE R-PUSAT |
+| R-DC | Fa6/0 | 10.98.0.1 | 255.255.224.0 | /19 | LAN CCTV Kota |
+| R-DC | Fa1/0 | 10.98.32.1 | 255.255.255.0 | /24 | LAN Server & Storage DC |
+| R-UTARA | Fa0/0 | 10.98.194.2 | 255.255.255.252 | /30 | L2 KE R-PUSAT |
+| R-UTARA | Fa7/0 | 10.96.192.1 | 255.255.255.252 | /30 | L6 KE R-PELABUHAN |
+| R-UTARA | Fa1/0 | 10.98.128.1 | 255.255.192.0 | /18 | LAN WiFi Publik Utara |
+| R-UTARA | Fa6/0 | 10.98.192.1 | 255.255.254.0 | /23 | LAN Sensor Lalu Lintas Utara |
+| R-PELABUHAN | Fa1/0 | 10.96.192.2 | 255.255.255.252 | /30 | L6 KE R-UTARA |
+| R-PELABUHAN | Fa0/0 | 10.96.128.1 | 255.255.224.0 | /19 | LAN Sensor & SCADA Pelabuhan |
+| R-PELABUHAN | Fa6/0 | 10.96.160.1 | 255.255.255.128 | /25 | LAN Kantor Pelabuhan |
+| R-SELATAN | Fa0/0 | 10.97.192.2 | 255.255.255.252 | /30 | L3 KE R-PUSAT |
+| R-SELATAN | Fa1/0 | 10.97.128.1 | 255.255.224.0 | /19 | LAN WiFi Publik Selatan |
+| R-SELATAN | Fa6/0 | 10.97.160.1 | 255.255.255.128 | /25 | LAN PJU Pintar Selatan |
+| R-TIMUR | Fa0/0 | 10.97.64.2 | 255.255.255.252 | /30 | L4 KE R-PUSAT |
+| R-TIMUR | Fa1/0 | 10.97.0.1 | 255.255.224.0 | /19 | LAN WiFi Publik Timur |
+| R-TIMUR | Fa6/0 | 10.97.32.1 | 255.255.252.0 | /22 | LAN Sensor Banjir Timur |
+| R-BARAT | Fa0/0 | 10.96.64.2 | 255.255.255.252 | /30 | L5 KE R-PUSAT |
+| R-BARAT | Fa1/0 | 10.96.0.1 | 255.255.224.0 | /19 | LAN WiFi Publik Barat |
+| R-BARAT | Fa6/0 | 10.96.32.1 | 255.255.255.0 | /24 | LAN Puskesmas & Sekolah Barat |
 
 ## Label LAN
 
@@ -132,6 +130,28 @@ Pertimbangan desain (bahan dokumentasi)
 | R-PELABUHAN | 0.0.0.0/0 | 10.96.192.1 | default ke R-UTARA |
 
 Proyek ini menggunakan skema CIDR karena konfigurasi static route pada R-PUSAT menjadi lebih efisien dan ringkas (hanya membutuhkan satu prefix rute per cabang atau router distribusi) dibandingkan dengan skema VLSM.
+
+### Penjelasan Konfigurasi
+
+**Pengalamatan.** Gateway tiap LAN adalah host pertama subnet dan dipasang pada
+interface router. Link L1-L5 memakai /30 dengan R-PUSAT di alamat .1 dan router
+cabang di .2; pada L6 R-UTARA .1 dan R-PELABUHAN .2. Link R-ISP ke R-PUSAT memakai
+203.0.113.48/30 (4 x K, K = 12). Server 8.8.8.8 memakai 8.8.8.8/24 dengan gateway 8.8.8.1.
+
+**Static routing.** Default route hanya mengarah ke router di atas atau ke luar:
+R-DC, R-BARAT, R-TIMUR, dan R-SELATAN ke R-PUSAT, R-PELABUHAN ke R-UTARA, serta
+R-PUSAT ke R-ISP. R-PUSAT memiliki satu rute ringkasan /17 per cabang (R-DC, R-UTARA,
+R-PELABUHAN via R-UTARA, R-SELATAN, R-TIMUR, R-BARAT), sedangkan R-UTARA memiliki
+rute ke blok R-PELABUHAN 10.96.128.0/17. Ringkasan ini berlaku karena tiap blok /17
+sudah mencakup LAN dan link milik cabang tersebut.
+
+**NAT.** R-PUSAT memakai PAT (overload) pada interface Fa0/0 (outside); semua interface
+lain adalah inside. ACL NAT-INTERNAL mengizinkan blok privat kelompok 10.96.0.0/14,
+sehingga semua host berbagi satu IP publik 203.0.113.50. R-ISP sengaja tanpa rute privat.
+
+**Alamat PC saat pengujian.** Karena DHCP dikerjakan pada Soal 4, PC perwakilan
+sementara memakai IP statis host ke-2 tiap subnet (misalnya PC-Pegawai-Bk
+10.99.0.2/21, gateway 10.99.0.1).
 
 ### Masukkan skrip ke setiap Router
 
@@ -417,9 +437,7 @@ write memory
 
     Mencocokan rute dengan tabel
 
-    ```show ip route static```
-    
-    <img width="905" height="248" alt="image" src="https://github.com/user-attachments/assets/1b061e96-89ec-4538-9b75-408f06c0bef3" />
+    ```show ip route static```  
 
     <img width="878" height="215" alt="image" src="https://github.com/user-attachments/assets/07d16172-c132-446d-b94b-aa0b263ffcdd" />
 
@@ -445,7 +463,7 @@ write memory
 
     <img width="897" height="295" alt="image" src="https://github.com/user-attachments/assets/41da870b-95ba-4329-b180-d606a04f1ca2" />
 
-    Dari foto tersebut kita bisa melihat bahwa konfigurasi NAT di R-Pusat berhasil karena tidak adanya rute privat.
+    Dari `show ip route` terlihat R-ISP hanya memiliki dua rute terhubung langsung (203.0.113.48/30 dan 8.8.8.0/24) dan tidak ada rute ke alamat privat, sesuai ketentuan        soal.
 
   - Lakukan ping ke salah satu alamat privat yang hasilnya harus gagal
     
@@ -455,7 +473,7 @@ write memory
     
     <img width="893" height="125" alt="image" src="https://github.com/user-attachments/assets/1161e3b1-e9ba-419c-a148-327a3629e680" />
 
-    Dari foto diatas kita bisa tahu bahwa konfigurasi NAT di R-PUSAT bekerja dengan benar karena R-ISP memang sengaja tidak diberi rute statis ke jaringan internal.
+    Ping dari R-ISP ke 10.99.0.2 gagal karena R-ISP tidak memiliki rute ke jaringan internal, sehingga jaringan privat tidak terekspos ke sisi internet. Bukti NAT bekerja       ada pada `ping 8.8.8.8` dari PC yang berhasil dan `show ip nat translations` yang menunjukkan alamat privat diterjemahkan menjadi 203.0.113.50.
 
 - Pengujian di PC
 
