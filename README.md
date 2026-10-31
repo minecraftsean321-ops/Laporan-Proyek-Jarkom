@@ -2,7 +2,7 @@
 
 ## Soal no 1,3 dan 5 (Sean)
 
-### Step pertama buat topologinya
+### Step Pertama
 
 Kita diminta untuk membuat topologi sesuai dengan skema CIDR yang telah dibuat.
 
@@ -42,7 +42,7 @@ Kabel
 
 <img width="984" height="651" alt="image" src="https://github.com/user-attachments/assets/3912f105-6924-4d03-bb62-d7c79b0d8e99" />
 
-Pertimbangan desain (bahan dokumentasi)
+### Pertimbangan desain
   1. Satu switch per LAN: router hanya butuh 1 port per LAN, dan perangkat
      baru bisa ditambah tanpa mengubah router.
   2. LAN WiFi Publik memakai AP dan perangkat wireless karena penggunanya
@@ -58,7 +58,7 @@ Pertimbangan desain (bahan dokumentasi)
   5. Server (SRV-DC, SRV-BALAIKOTA) ditempatkan di LAN tersendiri supaya
      layanan terpisah dari perangkat pengguna.
 
-# Skema CIDR - Kelompok 12
+## Skema CIDR - Kelompok 12
 
 ## Tabel Interface dan IP
 
