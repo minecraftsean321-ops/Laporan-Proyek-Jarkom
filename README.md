@@ -42,7 +42,7 @@ Kabel
 
 <img width="984" height="651" alt="image" src="https://github.com/user-attachments/assets/3912f105-6924-4d03-bb62-d7c79b0d8e99" />
 
-<img width="1230" height="601" alt="image" src="https://github.com/user-attachments/assets/cbecdc60-2253-4e80-a44f-6d7568024ab4" />
+<img width="984" height="auto" alt="image" src="https://github.com/user-attachments/assets/bbe841c2-a4fa-4d34-9438-eee09838d130" />
 
 
 ### Pertimbangan desain
