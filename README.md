@@ -40,9 +40,9 @@ Kabel
     R-SELATAN (L3), R-TIMUR (L4), R-BARAT (L5); R-UTARA ke R-PELABUHAN (L6);
     R-PUSAT ke R-ISP; R-ISP ke server 8.8.8.8.
 
-<img width="984" height="651" alt="image" src="https://github.com/user-attachments/assets/3912f105-6924-4d03-bb62-d7c79b0d8e99" />
+<img width="750" height="auto" alt="image" src="https://github.com/user-attachments/assets/3912f105-6924-4d03-bb62-d7c79b0d8e99" />
 
-<img width="984" height="auto" alt="image" src="https://github.com/user-attachments/assets/bbe841c2-a4fa-4d34-9438-eee09838d130" />
+<img width="750" height="auto" alt="image" src="https://github.com/user-attachments/assets/bbe841c2-a4fa-4d34-9438-eee09838d130" />
 
 
 ### Pertimbangan desain
@@ -447,7 +447,7 @@ end
 write memory
 ```
 
-<img width="934" height="656" alt="image" src="https://github.com/user-attachments/assets/b97f90b4-fcec-499c-a57d-d0dc55495fca" />
+<img width="750" height="auto" alt="image" src="https://github.com/user-attachments/assets/b97f90b4-fcec-499c-a57d-d0dc55495fca" />
 
 ### Pengujian 
 
