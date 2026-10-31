@@ -447,8 +447,6 @@ end
 write memory
 ```
 
-<img width="750" height="auto" alt="image" src="https://github.com/user-attachments/assets/b97f90b4-fcec-499c-a57d-d0dc55495fca" />
-
 ### Pengujian 
 
 - Pengujian di CLI Router
