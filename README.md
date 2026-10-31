@@ -1,4 +1,4 @@
-# Laporan-Proyek-Jarkom-
+# Laporan-Proyek-Jarkom
 
 ## Soal no 1,3 dan 5 (Sean)
 
