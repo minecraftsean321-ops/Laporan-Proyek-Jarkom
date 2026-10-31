@@ -48,10 +48,13 @@ Pertimbangan desain (bahan dokumentasi)
   2. LAN WiFi Publik memakai AP dan perangkat wireless karena penggunanya
      publik dan bergerak, sedangkan LAN lain memakai kabel karena perangkat
      tetap (server, CCTV, sensor, SCADA, PC kantor) dan butuh koneksi stabil.
-  3. Backbone antar-router memakai copper FastEthernet (cross-over) mengikuti
-     Gambar 1. Tiap link memakai /30 agar hemat alamat.
-  4. Router ditambah modul port sampai jumlah port cukup (R-PUSAT: 8 port,
-     R-UTARA: 5 port termasuk cadangan L7, R-DC: 4 port termasuk L7).
+  3. Backbone antar-router memakai copper FastEthernet (cross-over) mengikuti Gambar 1.
+     Tiap link memakai /30 agar hemat alamat.
+  4. Router ditambah modul port FastEthernet sampai jumlah port cukup untuk satu port per
+     link dan per LAN. Kebutuhan port: R-PUSAT 8 port (1 ke R-ISP, 5 link L1-L5, dan 2 LAN),
+     R-UTARA 4 port, R-DC 3 port, R-PELABUHAN, R-SELATAN, R-TIMUR, dan R-BARAT masing-masing
+     3 port, serta R-ISP 2 port. Link cadangan L7 (R-DC ke R-UTARA) tidak dipasang pada file
+     utama; port tambahannya baru disiapkan pada file OSPF (Soal 7).
   5. Server (SRV-DC, SRV-BALAIKOTA) ditempatkan di LAN tersendiri supaya
      layanan terpisah dari perangkat pengguna.
 
@@ -129,7 +132,25 @@ Pertimbangan desain (bahan dokumentasi)
 | R-SELATAN | 0.0.0.0/0 | 10.97.192.1 | default ke R-PUSAT |
 | R-PELABUHAN | 0.0.0.0/0 | 10.96.192.1 | default ke R-UTARA |
 
-Proyek ini menggunakan skema CIDR karena konfigurasi static route pada R-PUSAT menjadi lebih efisien dan ringkas (hanya membutuhkan satu prefix rute per cabang atau router distribusi) dibandingkan dengan skema VLSM.
+### Alasan Pemilihan Skema CIDR
+
+Proyek ini menggunakan skema CIDR (supernetting) dengan blok `10.96.0.0/14`. Alasannya:
+
+1. **Static route lebih ringkas.** Blok setiap cabang disusun hierarkis, sehingga R-PUSAT
+   cukup memiliki satu rute ringkasan /17 per cabang (6 rute), dan R-UTARA satu rute
+   ke blok R-PELABUHAN. Pada skema VLSM, R-PUSAT membutuhkan satu rute per LAN (12 rute)
+   dan R-UTARA dua rute. Rute yang lebih sedikit mengurangi risiko salah ketik dan
+   mempermudah pemeriksaan.
+2. **Mudah dikembangkan.** Penambahan LAN baru di dalam blok sebuah cabang tidak
+   mengubah konfigurasi R-PUSAT, karena rute ringkasannya sudah mencakup seluruh blok.
+3. **Sesuai kebutuhan Soal 3.** Aturan default route ke atas dan rute ke bawah di
+   R-PUSAT serta R-UTARA dapat dipenuhi dengan jumlah rute yang kecil.
+
+**Trade-off.** CIDR kurang hemat alamat karena blok tiap cabang dibulatkan ke pangkat 2.
+Dari total kebutuhan 61.752 alamat, CIDR memakai kapasitas /14 (262.144 alamat) sehingga
+pemakaiannya 23,56%, sedangkan VLSM cukup /16 (65.536 alamat) dengan pemakaian 94,23%.
+Pemborosan ini dapat diterima karena ruang privat `10.0.0.0/8` masih sangat longgar dan
+seluruh blok /14 masih berada dalam jatah alamat kelompok (10.96.0.0 - 10.103.255.255).
 
 ### Penjelasan Konfigurasi
 
