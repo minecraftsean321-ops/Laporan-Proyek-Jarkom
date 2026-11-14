@@ -529,18 +529,373 @@ write memory
     <img width="703" height="267" alt="image" src="https://github.com/user-attachments/assets/dc8bc56e-6258-44e3-9f66-2c9e0fcc5ff4" />
 
 
+## Soal no 4 dan 8 (Boma)
 
-    
+### Soal 4 - DHCP
+
+Kita diminta supaya semua perangkat pengguna (PC, laptop) mendapat IP, gateway, dan DNS secara otomatis dari DHCP, sedangkan interface router dan server tetap memakai IP statis.
+
+- 10 LAN pengguna dilayani DHCP oleh router tempat LAN itu terhubung (`ip dhcp pool`).
+- LAN CCTV Kota adalah pengecualian: alamatnya harus datang dari **server DHCP di LAN Server dan Storage DC (SRV-DC, 10.98.32.2)**, bukan dari R-DC. Karena request DHCP berupa broadcast dan broadcast tidak melewati router, R-DC diberi `ip helper-address 10.98.32.2` pada interface LAN CCTV (Fa6/0) sebagai DHCP relay.
+- LAN Server Balai Kota dan LAN Server & Storage DC tidak memakai DHCP karena isinya server dengan IP statis.
+- Alamat `.1` sampai `.10` di tiap LAN di-exclude (`.1` = gateway, sisanya cadangan IP statis), jadi lease pertama selalu `.11` dan tidak bentrok dengan alamat statis.
+- Semua pool memberi DNS `10.98.32.2` (SRV-DC) karena semua layanan Soal 8 diakses lewat nama domain `k12.smartcity.lab`.
+
+### Tabel Pool DHCP
+
+| Sumber | LAN | Network | Mask | Gateway | DNS | Lease pertama |
+|---|---|---|---|---|---|---|
+| R-PUSAT | Pegawai Balai Kota | 10.99.0.0/21 | 255.255.248.0 | 10.99.0.1 | 10.98.32.2 | 10.99.0.11 |
+| R-UTARA | WiFi Publik Utara | 10.98.128.0/18 | 255.255.192.0 | 10.98.128.1 | 10.98.32.2 | 10.98.128.11 |
+| R-UTARA | Sensor Lalu Lintas Utara | 10.98.192.0/23 | 255.255.254.0 | 10.98.192.1 | 10.98.32.2 | 10.98.192.11 |
+| R-PELABUHAN | Sensor & SCADA Pelabuhan | 10.96.128.0/19 | 255.255.224.0 | 10.96.128.1 | 10.98.32.2 | 10.96.128.11 |
+| R-PELABUHAN | Kantor Pelabuhan | 10.96.160.0/25 | 255.255.255.128 | 10.96.160.1 | 10.98.32.2 | 10.96.160.11 |
+| R-SELATAN | WiFi Publik Selatan | 10.97.128.0/19 | 255.255.224.0 | 10.97.128.1 | 10.98.32.2 | 10.97.128.11 |
+| R-SELATAN | PJU Pintar Selatan | 10.97.160.0/25 | 255.255.255.128 | 10.97.160.1 | 10.98.32.2 | 10.97.160.11 |
+| R-TIMUR | WiFi Publik Timur | 10.97.0.0/19 | 255.255.224.0 | 10.97.0.1 | 10.98.32.2 | 10.97.0.11 |
+| R-TIMUR | Sensor Banjir Timur | 10.97.32.0/22 | 255.255.252.0 | 10.97.32.1 | 10.98.32.2 | 10.97.32.11 |
+| R-BARAT | WiFi Publik Barat | 10.96.0.0/19 | 255.255.224.0 | 10.96.0.1 | 10.98.32.2 | 10.96.0.11 |
+| R-BARAT | Puskesmas & Sekolah Barat | 10.96.32.0/24 | 255.255.255.0 | 10.96.32.1 | 10.98.32.2 | 10.96.32.11 |
+| **SRV-DC** | **CCTV Kota (via relay R-DC)** | 10.98.0.0/19 | 255.255.224.0 | 10.98.0.1 | 10.98.32.2 | 10.98.0.11 |
+
+### Masukkan skrip DHCP ke setiap Router
+
+-- Skrip CLI DHCP per Router
+
+```
+!----- R-PUSAT -----
+enable
+configure terminal
+ip dhcp excluded-address 10.99.0.1 10.99.0.10
+ip dhcp pool PEGAWAI-BALAIKOTA
+ network 10.99.0.0 255.255.248.0
+ default-router 10.99.0.1
+ dns-server 10.98.32.2
+ domain-name k12.smartcity.lab
+exit
+end
+write memory
+```
+
+```
+!----- R-UTARA -----
+enable
+configure terminal
+ip dhcp excluded-address 10.98.128.1 10.98.128.10
+ip dhcp excluded-address 10.98.192.1 10.98.192.10
+ip dhcp pool WIFI-UTARA
+ network 10.98.128.0 255.255.192.0
+ default-router 10.98.128.1
+ dns-server 10.98.32.2
+ domain-name k12.smartcity.lab
+exit
+ip dhcp pool SENSOR-LALIN-UTARA
+ network 10.98.192.0 255.255.254.0
+ default-router 10.98.192.1
+ dns-server 10.98.32.2
+ domain-name k12.smartcity.lab
+exit
+end
+write memory
+```
+
+```
+!----- R-PELABUHAN -----
+enable
+configure terminal
+ip dhcp excluded-address 10.96.128.1 10.96.128.10
+ip dhcp excluded-address 10.96.160.1 10.96.160.10
+ip dhcp pool SCADA-PELABUHAN
+ network 10.96.128.0 255.255.224.0
+ default-router 10.96.128.1
+ dns-server 10.98.32.2
+ domain-name k12.smartcity.lab
+exit
+ip dhcp pool KANTOR-PELABUHAN
+ network 10.96.160.0 255.255.255.128
+ default-router 10.96.160.1
+ dns-server 10.98.32.2
+ domain-name k12.smartcity.lab
+exit
+end
+write memory
+```
+
+```
+!----- R-SELATAN -----
+enable
+configure terminal
+ip dhcp excluded-address 10.97.128.1 10.97.128.10
+ip dhcp excluded-address 10.97.160.1 10.97.160.10
+ip dhcp pool WIFI-SELATAN
+ network 10.97.128.0 255.255.224.0
+ default-router 10.97.128.1
+ dns-server 10.98.32.2
+ domain-name k12.smartcity.lab
+exit
+ip dhcp pool PJU-SELATAN
+ network 10.97.160.0 255.255.255.128
+ default-router 10.97.160.1
+ dns-server 10.98.32.2
+ domain-name k12.smartcity.lab
+exit
+end
+write memory
+```
+
+```
+!----- R-TIMUR -----
+enable
+configure terminal
+ip dhcp excluded-address 10.97.0.1 10.97.0.10
+ip dhcp excluded-address 10.97.32.1 10.97.32.10
+ip dhcp pool WIFI-TIMUR
+ network 10.97.0.0 255.255.224.0
+ default-router 10.97.0.1
+ dns-server 10.98.32.2
+ domain-name k12.smartcity.lab
+exit
+ip dhcp pool SENSOR-BANJIR-TIMUR
+ network 10.97.32.0 255.255.252.0
+ default-router 10.97.32.1
+ dns-server 10.98.32.2
+ domain-name k12.smartcity.lab
+exit
+end
+write memory
+```
+
+```
+!----- R-BARAT -----
+enable
+configure terminal
+ip dhcp excluded-address 10.96.0.1 10.96.0.10
+ip dhcp excluded-address 10.96.32.1 10.96.32.10
+ip dhcp pool WIFI-BARAT
+ network 10.96.0.0 255.255.224.0
+ default-router 10.96.0.1
+ dns-server 10.98.32.2
+ domain-name k12.smartcity.lab
+exit
+ip dhcp pool PUSKESMAS-SEKOLAH-BARAT
+ network 10.96.32.0 255.255.255.0
+ default-router 10.96.32.1
+ dns-server 10.98.32.2
+ domain-name k12.smartcity.lab
+exit
+end
+write memory
+```
+
+```
+!----- R-DC (tanpa pool, hanya DHCP relay ke SRV-DC) -----
+enable
+configure terminal
+interface FastEthernet6/0
+ description LAN CCTV Kota
+ ip helper-address 10.98.32.2
+exit
+end
+write memory
+```
+
+### Konfigurasi Server DHCP di SRV-DC (untuk CCTV Kota)
+
+- Desktop > IP Configuration > Static: IP `10.98.32.2`, mask `255.255.255.0`, gateway `10.98.32.1`, DNS `10.98.32.2`.
+- Services > DHCP: Service **On**, lalu tambah pool baru:
+
+  | Field | Isi |
+  |---|---|
+  | Pool Name | CCTV-KOTA |
+  | Default Gateway | 10.98.0.1 |
+  | DNS Server | 10.98.32.2 |
+  | Start IP | 10.98.0.11 |
+  | Subnet Mask | 255.255.224.0 |
+  | Max Users | 999 |
+
+Cara kerjanya: request DHCP dari PC-Cctv-Kota sampai ke R-DC sebagai broadcast, lalu R-DC meneruskannya ke 10.98.32.2 dengan `giaddr = 10.98.0.1`. SRV-DC memilih pool CCTV-KOTA berdasarkan giaddr tersebut, dan offer dikirim balik lewat R-DC ke PC-Cctv-Kota.
+
+### Konfigurasi Klien
+
+Semua PC/Laptop perwakilan diubah ke Desktop > IP Configuration > **DHCP** (IP statis `.2` yang dipakai saat pengujian Soal 3 dihapus dulu). Laptop WiFi harus terhubung dulu ke SSID AP-nya lewat Desktop > PC Wireless, baru meminta alamat.
+
+**Catatan perbaikan.** Saat pengujian, PC-Sensor-Banjir tidak mendapat alamat walaupun pool `SENSOR-BANJIR-TIMUR` di R-TIMUR sudah benar (Fa6/0 10.97.32.1/22 up/up, tetapi leased 0). Setelah dicek dengan `show ip interface brief` di Sw-Sensor-Banjir, ternyata kabel PC ke switch belum terpasang. Setelah ditambahkan kabel Copper Straight-Through dari PC-Sensor-Banjir Fa0 ke Sw-Sensor-Banjir Fa1/1, PC langsung mendapat 10.97.32.11.
+
+### Pengujian Soal 4
+
+Hasil DHCP di 12 klien perwakilan:
+
+| Klien | IP | Mask | Gateway | DNS | Sumber |
+|---|---|---|---|---|---|
+| PC-Pegawai-Bk | 10.99.0.11 | 255.255.248.0 | 10.99.0.1 | 10.98.32.2 | R-PUSAT |
+| PC-Cctv-Kota | 10.98.0.11 | 255.255.224.0 | 10.98.0.1 | 10.98.32.2 | SRV-DC (relay R-DC) |
+| PC-Sensor-Lalin | 10.98.192.11 | 255.255.254.0 | 10.98.192.1 | 10.98.32.2 | R-UTARA |
+| Laptop-Wifi-Utara | 10.98.128.11 | 255.255.192.0 | 10.98.128.1 | 10.98.32.2 | R-UTARA |
+| PC-Scada-Pelabuhan | 10.96.128.11 | 255.255.224.0 | 10.96.128.1 | 10.98.32.2 | R-PELABUHAN |
+| PC-Kantor-Pelabuhan | 10.96.160.11 | 255.255.255.128 | 10.96.160.1 | 10.98.32.2 | R-PELABUHAN |
+| Laptop-Wifi-Selatan | 10.97.128.11 | 255.255.224.0 | 10.97.128.1 | 10.98.32.2 | R-SELATAN |
+| PC-PJU-Selatan | 10.97.160.11 | 255.255.255.128 | 10.97.160.1 | 10.98.32.2 | R-SELATAN |
+| Laptop-Wifi-Timur | 10.97.0.11 | 255.255.224.0 | 10.97.0.1 | 10.98.32.2 | R-TIMUR |
+| PC-Sensor-Banjir | 10.97.32.11 | 255.255.252.0 | 10.97.32.1 | 10.98.32.2 | R-TIMUR |
+| Laptop-Wifi-Barat | 10.96.0.11 | 255.255.224.0 | 10.96.0.1 | 10.98.32.2 | R-BARAT |
+| PC-Puskesmas-Barat | 10.96.32.11 | 255.255.255.0 | 10.96.32.1 | 10.98.32.2 | R-BARAT |
+
+Semua klien mendapat lease pertama `.11`, gateway = host pertama subnet, dan DNS 10.98.32.2. Tidak ada klien yang mendapat `.1` sampai `.10`, jadi tidak bentrok dengan alamat statis.
+
+- Wilayah Balai Kota dan Command Center
+
+  - PC-Pegawai-Bk (DHCP dari R-PUSAT)
+
+    <img width="500" height="auto" alt="DHCP PC-Pegawai-Bk" src="img/soal4-8/soal4_01_pc_pegawai_bk.png" />
+
+  - PC-Cctv-Kota (DHCP dari SRV-DC lewat relay R-DC)
+
+    <img width="500" height="auto" alt="DHCP PC-Cctv-Kota" src="img/soal4-8/soal4_02_pc_cctv_kota_relay.png" />
+
+    PC-Cctv-Kota mendapat 10.98.0.11 dari pool CCTV-KOTA di SRV-DC, bukan dari R-DC (R-DC tidak punya pool DHCP). Ini bukti relay `ip helper-address` bekerja.
+
+- Wilayah Utara
+
+  - PC-Sensor-Lalin
+
+    <img width="500" height="auto" alt="DHCP PC-Sensor-Lalin" src="img/soal4-8/soal4_03_pc_sensor_lalin.png" />
+
+  - Laptop-Wifi-Utara
+
+    <img width="500" height="auto" alt="DHCP Laptop-Wifi-Utara" src="img/soal4-8/soal4_12_laptop_wifi_utara.png" />
+
+- Wilayah Pelabuhan
+
+  - PC-Scada-Pelabuhan
+
+    <img width="500" height="auto" alt="DHCP PC-Scada-Pelabuhan" src="img/soal4-8/soal4_08_pc_scada_pelabuhan.png" />
+
+  - PC-Kantor-Pelabuhan
+
+    <img width="500" height="auto" alt="DHCP PC-Kantor-Pelabuhan" src="img/soal4-8/soal4_09_pc_kantor_pelabuhan.png" />
+
+- Wilayah Selatan
+
+  - Laptop-Wifi-Selatan
+
+    <img width="500" height="auto" alt="DHCP Laptop-Wifi-Selatan" src="img/soal4-8/soal4_10_laptop_wifi_selatan.png" />
+
+  - PC-PJU-Selatan
+
+    <img width="500" height="auto" alt="DHCP PC-PJU-Selatan" src="img/soal4-8/soal4_07_pc_pju_selatan.png" />
+
+- Wilayah Timur
+
+  - Laptop-Wifi-Timur
+
+    <img width="500" height="auto" alt="DHCP Laptop-Wifi-Timur" src="img/soal4-8/soal4_11_laptop_wifi_timur.png" />
+
+  - PC-Sensor-Banjir
+
+    <img width="500" height="auto" alt="DHCP PC-Sensor-Banjir" src="img/soal4-8/soal4_06_pc_sensor_banjir.png" />
+
+- Wilayah Barat
+
+  - Laptop-Wifi-Barat
+
+    <img width="500" height="auto" alt="DHCP Laptop-Wifi-Barat" src="img/soal4-8/soal4_05_laptop_wifi_barat.png" />
+
+  - PC-Puskesmas-Barat
+
+    <img width="500" height="auto" alt="DHCP PC-Puskesmas-Barat" src="img/soal4-8/soal4_04_pc_puskesmas_barat.png" />
 
 
-    
+### Soal 8 - Layanan Aplikasi Smart City
 
+Domain internal kelompok kami adalah **`k12.smartcity.lab`** (12 = nomor kelompok). Layanan yang dipasang:
 
-  
+| Layanan | Server | IP | LAN (router) | Alasan |
+|---|---|---|---|---|
+| DNS | SRV-DC | 10.98.32.2 | Server & Storage DC (R-DC) | Satu sumber DNS untuk seluruh kota, ada di Command Center |
+| FTP (rekaman CCTV) | SRV-DC | 10.98.32.2 | Server & Storage DC (R-DC) | Rekaman CCTV disimpan di DC |
+| Email | SRV-DC | 10.98.32.2 | Server & Storage DC (R-DC) | SMTP/POP3 satu titik untuk semua pegawai |
+| Web Portal | SRV-BALAIKOTA | 10.99.8.2 | Server Balai Kota (R-PUSAT) | Portal resmi pemerintahan ada di Balai Kota |
 
-  
+### IP Statis Server
 
+| Server | IP | Mask | Gateway | DNS |
+|---|---|---|---|---|
+| SRV-DC | 10.98.32.2 | 255.255.255.0 | 10.98.32.1 | 10.98.32.2 |
+| SRV-BALAIKOTA | 10.99.8.2 | 255.255.255.224 | 10.99.8.1 | 10.98.32.2 |
 
+### Konfigurasi Layanan
 
+**DNS (SRV-DC > Services > DNS).** DNS Service **On**, lalu tambah record Type A:
 
+| Name | Type | Address |
+|---|---|---|
+| www.k12.smartcity.lab | A | 10.99.8.2 |
+| ftp.k12.smartcity.lab | A | 10.98.32.2 |
+| mail.k12.smartcity.lab | A | 10.98.32.2 |
 
+**Web (SRV-BALAIKOTA > Services > HTTP).** HTTP **On**, lalu isi `index.html` diganti dengan halaman "Portal Smart City Surabaya" yang mencantumkan Kelompok 12, domain internal, dan daftar layanan.
+
+**FTP (SRV-DC > Services > FTP).** FTP **On**, tambah user `cctv` / `cctv12345` dengan permission Write, Read, Delete, Rename, List.
+
+**Email (SRV-DC > Services > EMAIL).** SMTP dan POP3 **On**, domain `k12.smartcity.lab` (klik Set), lalu tambah user `pegawai1` / `pegawai123` dan `pegawai2` / `pegawai123`.
+
+Konfigurasi email di klien (Desktop > Email > Configure Mail):
+
+| Field | PC-Pegawai-Bk (Balai Kota) | PC-Kantor-Pelabuhan (Pelabuhan) |
+|---|---|---|
+| Your Name | Pegawai 1 | Pegawai 2 |
+| Email Address | pegawai1@k12.smartcity.lab | pegawai2@k12.smartcity.lab |
+| Incoming Mail Server | mail.k12.smartcity.lab | mail.k12.smartcity.lab |
+| Outgoing Mail Server | mail.k12.smartcity.lab | mail.k12.smartcity.lab |
+| User Name / Password | pegawai1 / pegawai123 | pegawai2 / pegawai123 |
+
+### Pengujian Soal 8
+
+- Tes DNS
+
+  Dari PC-Kantor-Pelabuhan (wilayah Pelabuhan, beda wilayah dengan server):
+
+  ```nslookup www.k12.smartcity.lab```
+
+  <img width="500" height="auto" alt="nslookup" src="img/soal4-8/soal8_01_dns_nslookup.png" />
+
+  Percobaan pertama sempat timeout karena tabel ARP di jalur antar-router belum terisi. Percobaan berikutnya berhasil: server DNS 10.98.32.2 menjawab `www.k12.smartcity.lab` = 10.99.8.2.
+
+- Tes Web
+
+  Dari PC-Kantor-Pelabuhan, buka Desktop > Web Browser:
+
+  ```http://www.k12.smartcity.lab```
+
+  <img width="500" height="auto" alt="Web portal" src="img/soal4-8/soal8_02_web_portal.png" />
+
+  Halaman "Portal Smart City Surabaya" dengan identitas Kelompok 12 tampil. Portal dibuka memakai nama domain, bukan IP, jadi DNS dan HTTP sama-sama berfungsi.
+
+- Tes FTP
+
+  Dari PC-Cctv-Kota, buat file `rekaman1.txt` lewat Desktop > Text Editor, lalu upload ke server:
+
+  ```
+  ftp ftp.k12.smartcity.lab
+  Username: cctv
+  Password: cctv12345
+  put rekaman1.txt
+  dir
+  quit
+  ```
+
+  <img width="500" height="auto" alt="FTP put" src="img/soal4-8/soal8_03_ftp_put.png" />
+
+  Login berhasil (`230- Logged in`), file terkirim (`Transfer complete - 31 bytes`), dan `rekaman1.txt` muncul di urutan terakhir hasil `dir`.
+
+- Tes Email
+
+  Kirim email dari pegawai1 (PC-Pegawai-Bk) ke pegawai2, lalu klik Receive di PC-Kantor-Pelabuhan:
+
+  <img width="500" height="auto" alt="Email diterima pegawai2" src="img/soal4-8/soal8_04_email_pegawai2.png" />
+
+  Balas dari pegawai2 ke pegawai1, lalu klik Receive di PC-Pegawai-Bk:
+
+  <img width="500" height="auto" alt="Email diterima pegawai1" src="img/soal4-8/soal8_05_email_pegawai1.png" />
+
+  Email terkirim dua arah antara Balai Kota dan Pelabuhan lewat server `mail.k12.smartcity.lab`.
