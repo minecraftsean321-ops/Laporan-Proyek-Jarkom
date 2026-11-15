@@ -899,3 +899,189 @@ Konfigurasi email di klien (Desktop > Email > Configure Mail):
   <img width="500" height="auto" alt="Email diterima pegawai1" src="img/soal4-8/soal8_05_email_pegawai1.png" />
 
   Email terkirim dua arah antara Balai Kota dan Pelabuhan lewat server `mail.k12.smartcity.lab`.
+
+## Soal no 2, 6, dan 7 (Afriezal)
+
+### Soal 2 - Perancangan Pengalamatan IP (CIDR / Supernetting)
+
+Berdasarkan parameter **Nomor Kelompok $K = 12$**, blok alamat privat yang dialokasikan untuk kelompok kami dihitung sebagai berikut:
+- Oktet kedua awal: $96 + (12 - 1) \times 8 = \mathbf{96}$ (karena $K = 12$ genap, rentang oktet kedua adalah $96$ s.d. $103$).
+- Jatah blok IP kelompok: **`10.96.0.0/13`** (`10.96.0.0` – `10.103.255.255`).
+- Blok supernet CIDR yang digunakan proyek: **`10.96.0.0/14`** (`10.96.0.0` – `10.99.255.255`), sedangkan tautan WAN menuju ISP menggunakan blok publik **`203.0.113.48/30`** ($4 \times 12 = 48$).
+
+#### 1. Tabel Alokasi Blok Supernet per Wilayah (`/17`)
+
+Seluruh jaringan internal dibagi secara hierarkis ke dalam **8 blok `/17`** (masing-masing menampung maksimal $32.768$ alamat) agar router pusat (`R-PUSAT`) cukup menyimpan satu rute ringkasan (*route summarization*) per wilayah cabang:
+
+| Blok Supernet `/17` | Rentang Alamat IP | Wilayah / Peruntukan | Cakupan Subnet di Dalamnya |
+|---|---|---|---|
+| `10.96.0.0/17` | `10.96.0.0` – `10.96.127.255` | Wilayah Barat (`R-BARAT`) | WiFi Barat (`/19`), Puskesmas & Sekolah (`/24`), Link L5 (`/30`) |
+| `10.96.128.0/17` | `10.96.128.0` – `10.96.255.255` | Wilayah Pelabuhan (`R-PELABUHAN`) | SCADA Pelabuhan (`/19`), Kantor Pelabuhan (`/25`), Link L6 (`/30`) |
+| `10.97.0.0/17` | `10.97.0.0` – `10.97.127.255` | Wilayah Timur (`R-TIMUR`) | WiFi Timur (`/19`), Sensor Banjir (`/22`), Link L4 (`/30`) |
+| `10.97.128.0/17` | `10.97.128.0` – `10.97.255.255` | Wilayah Selatan (`R-SELATAN`) | WiFi Selatan (`/19`), PJU Pintar (`/25`), Link L3 (`/30`) |
+| `10.98.0.0/17` | `10.98.0.0` – `10.98.127.255` | Data Center (`R-DC`) | CCTV Kota (`/19`), Server & Storage DC (`/24`), Link L1 (`/30`) |
+| `10.98.128.0/17` | `10.98.128.0` – `10.98.255.255` | Wilayah Utara (`R-UTARA`) | WiFi Utara (`/18`), Sensor Lalin (`/23`), Link L2 (`/30`) |
+| `10.99.0.0/17` | `10.99.0.0` – `10.99.127.255` | Balai Kota (`R-PUSAT`) & Link L7 | Pegawai Balai Kota (`/21`), Server Balai Kota (`/27`), Link L7 (`/30`) |
+| `10.99.128.0/17` | `10.99.128.0` – `10.99.255.255` | Cadangan Ekspansi Kota | Dicadangkan untuk pengembangan zona Smart City baru |
+
+#### 2. Tabel Rincian Subnetting LAN (14 Segmen) dan Link Point-to-Point (`/30`)
+
+Setiap subnet diurutkan mulai dari kebutuhan host terbesar hingga terkecil di dalam blok `/17` masing-masing wilayah, dengan aturan **gateway = host pertama** (`.1`) dan **DHCP dimulai dari host ke-11** (`.11`):
+
+| No | Wilayah / Segmen | Kebutuhan Host | Network ID | Prefix | Subnet Mask | Host Pertama (Gateway) | Host Terakhir | Broadcast | Kapasitas Host Usable |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | WiFi Publik Utara | 11.000 | `10.98.128.0` | `/18` | `255.255.192.0` | `10.98.128.1` | `10.98.191.254` | `10.98.191.255` | 16.382 |
+| 2 | WiFi Publik Selatan | 6.500 | `10.97.128.0` | `/19` | `255.255.224.0` | `10.97.128.1` | `10.97.159.254` | `10.97.159.255` | 8.190 |
+| 3 | CCTV Kota | 6.000 | `10.98.0.0` | `/19` | `255.255.224.0` | `10.98.0.1` | `10.98.31.254` | `10.98.31.255` | 8.190 |
+| 4 | WiFi Publik Timur | 5.500 | `10.97.0.0` | `/19` | `255.255.224.0` | `10.97.0.1` | `10.97.31.254` | `10.97.31.255` | 8.190 |
+| 5 | Sensor & SCADA Pelabuhan | 5.000 | `10.96.128.0` | `/19` | `255.255.224.0` | `10.96.128.1` | `10.96.159.254` | `10.96.159.255` | 8.190 |
+| 6 | WiFi Publik Barat | 4.500 | `10.96.0.0` | `/19` | `255.255.224.0` | `10.96.0.1` | `10.96.31.254` | `10.96.31.255` | 8.190 |
+| 7 | Pegawai Balai Kota | 1.800 | `10.99.0.0` | `/21` | `255.255.248.0` | `10.99.0.1` | `10.99.7.254` | `10.99.7.255` | 2.046 |
+| 8 | Sensor Banjir Timur | 700 | `10.97.32.0` | `/22` | `255.255.252.0` | `10.97.32.1` | `10.97.35.254` | `10.97.35.255` | 1.022 |
+| 9 | Sensor Lalu Lintas Utara | 450 | `10.98.192.0` | `/23` | `255.255.254.0` | `10.98.192.1` | `10.98.193.254` | `10.98.193.255` | 510 |
+| 10 | Puskesmas & Sekolah Barat | 220 | `10.96.32.0` | `/24` | `255.255.255.0` | `10.96.32.1` | `10.96.32.254` | `10.96.32.255` | 254 |
+| 11 | Server & Storage DC | 180 | `10.98.32.0` | `/24` | `255.255.255.0` | `10.98.32.1` | `10.98.32.254` | `10.98.32.255` | 254 |
+| 12 | Kantor Pelabuhan | 120 | `10.96.160.0` | `/25` | `255.255.255.128` | `10.96.160.1` | `10.96.160.126` | `10.96.160.127` | 126 |
+| 13 | PJU Pintar Selatan | 90 | `10.97.160.0` | `/25` | `255.255.255.128` | `10.97.160.1` | `10.97.160.126` | `10.97.160.127` | 126 |
+| 14 | Server Balai Kota | 20 | `10.99.8.0` | `/27` | `255.255.255.224` | `10.99.8.1` | `10.99.8.30` | `10.99.8.31` | 30 |
+
+**Alokasi Link Antar-Router (`/30`):**
+
+| Link | Hubungan Router | Network ID | Subnet Mask | IP Router A | IP Router B | Broadcast |
+|---|---|---|---|---|---|---|
+| WAN-ISP | `R-ISP` $\leftrightarrow$ `R-PUSAT` | `203.0.113.48/30` | `255.255.255.252` | `203.0.113.49` (`R-ISP`) | `203.0.113.50` (`R-PUSAT`) | `203.0.113.51` |
+| L1 | `R-PUSAT` $\leftrightarrow$ `R-DC` | `10.98.64.0/30` | `255.255.255.252` | `10.98.64.1` (`R-PUSAT`) | `10.98.64.2` (`R-DC`) | `10.98.64.3` |
+| L2 | `R-PUSAT` $\leftrightarrow$ `R-UTARA` | `10.98.194.0/30` | `255.255.255.252` | `10.98.194.1` (`R-PUSAT`) | `10.98.194.2` (`R-UTARA`) | `10.98.194.3` |
+| L3 | `R-PUSAT` $\leftrightarrow$ `R-SELATAN` | `10.97.192.0/30` | `255.255.255.252` | `10.97.192.1` (`R-PUSAT`) | `10.97.192.2` (`R-SELATAN`) | `10.97.192.3` |
+| L4 | `R-PUSAT` $\leftrightarrow$ `R-TIMUR` | `10.97.64.0/30` | `255.255.255.252` | `10.97.64.1` (`R-PUSAT`) | `10.97.64.2` (`R-TIMUR`) | `10.97.64.3` |
+| L5 | `R-PUSAT` $\leftrightarrow$ `R-BARAT` | `10.96.64.0/30` | `255.255.255.252` | `10.96.64.1` (`R-PUSAT`) | `10.96.64.2` (`R-BARAT`) | `10.96.64.3` |
+| L6 | `R-UTARA` $\leftrightarrow$ `R-PELABUHAN` | `10.96.192.0/30` | `255.255.255.252` | `10.96.192.1` (`R-UTARA`) | `10.96.192.2` (`R-PELABUHAN`) | `10.96.192.3` |
+| L7 *(OSPF)* | `R-DC` $\leftrightarrow$ `R-UTARA` | `10.99.8.32/30` | `255.255.255.252` | `10.99.8.33` (`R-DC`) | `10.99.8.34` (`R-UTARA`) | `10.99.8.35` |
+| GRE Tunnel | `R-PUSAT` $\leftrightarrow$ `R-PELABUHAN` | `192.168.12.0/30` | `255.255.255.252` | `192.168.12.1` (`R-PUSAT`) | `192.168.12.2` (`R-PELABUHAN`) | `192.168.12.3` |
+
+*(Perhitungan lengkap dan verifikasi tidak adanya tumpang tindih subnet dilampirkan pada file `Tabel_Subnetting_MidProject_Jarkom_K12_Revisi_v2.xlsx`).*
+
+---
+
+### Soal 6 - Tunneling GRE (Balai Kota $\leftrightarrow$ Pelabuhan)
+
+#### 1. Konsep dan Parameter Tunnel GRE
+
+Untuk menghubungkan jaringan **Balai Kota (`R-PUSAT`)** dengan **Wilayah Pelabuhan (`R-PELABUHAN`)** secara langsung dalam satu lompatan logis (*point-to-point overlay*) tanpa mengekspos tabel routing internal ke router perantara (`R-UTARA`), dibangun antarmuka virtual **`Tunnel0`** menggunakan enkapsulasi **GRE (*Generic Routing Encapsulation*)**:
+
+| Parameter | `R-PUSAT` (Ujung Pusat) | `R-PELABUHAN` (Ujung Pelabuhan) |
+|---|---|---|
+| **Model Perangkat** | Cisco `2811` (`NM-4E` + `HWIC-4ESW`) | Cisco `2811` (`NM-4E`) |
+| **Interface Virtual** | `Tunnel0` | `Tunnel0` |
+| **IP Address Tunnel** | `192.168.12.1/30` (`255.255.255.252`) | `192.168.12.2/30` (`255.255.255.252`) |
+| **Tunnel Source** | `Ethernet1/0` (`10.98.194.1` — L2 ke `R-UTARA`) | `FastEthernet0/0` (`10.96.192.2` — L6 ke `R-UTARA`) |
+| **Tunnel Destination** | `10.96.192.2` (IP fisik `R-PELABUHAN`) | `10.98.194.1` (IP fisik `R-PUSAT`) |
+| **Tunnel Mode** | `gre ip` | `gre ip` |
+| **Rute Lewat Tunnel** | `10.96.128.0/17` $\rightarrow$ `192.168.12.2` | `10.99.0.0/20` $\rightarrow$ `192.168.12.1` |
+
+#### 2. Penyesuaian Perangkat Keras Router
+
+Pada topologi awal, `R-PUSAT` dan `R-PELABUHAN` menggunakan model `Router-PT` generik yang tidak mendukung pembuatan antarmuka `interface Tunnel0` pada Cisco IOS Packet Tracer. Oleh karena itu, kedua router ditingkatkan menggunakan seri **Cisco `2811`**:
+- **`R-PUSAT` (Cisco 2811):** Ditambahkan modul **`NM-4E`** (4 port Ethernet Layer 3 `Ethernet1/0`–`1/3` untuk link L2–L5) dan modul **`HWIC-4ESW`** (port `FastEthernet0/0/0` untuk LAN Pegawai Balai Kota via `Vlan1` dan `FastEthernet0/0/1` untuk LAN Server Balai Kota via `Vlan20`), sementara 2 port bawaan (`FastEthernet0/0` dan `FastEthernet0/1`) digunakan untuk WAN `R-ISP` dan link L1 ke `R-DC`.
+- **`R-PELABUHAN` (Cisco 2811):** Ditambahkan modul **`NM-4E`** untuk menyediakan port ke-3 (`Ethernet1/0` untuk LAN Kantor Pelabuhan) melengkapi 2 port bawaan (`FastEthernet0/0` untuk link L6 dan `FastEthernet0/1` untuk LAN SCADA Pelabuhan).
+
+#### 3. Skrip CLI Konfigurasi Tunnel GRE
+
+```ios
+!----- R-PUSAT -----
+enable
+configure terminal
+interface Tunnel0
+ ip address 192.168.12.1 255.255.255.252
+ tunnel source Ethernet1/0
+ tunnel destination 10.96.192.2
+ tunnel mode gre ip
+ no shutdown
+exit
+! Mengarahkan blok Pelabuhan (10.96.128.0/17) melewati Tunnel0
+ip route 10.96.128.0 255.255.128.0 192.168.12.2
+end
+write memory
+```   
+
+```ios
+!----- R-PELABUHAN -----
+enable
+configure terminal
+interface Tunnel0
+ ip address 192.168.12.2 255.255.255.252
+ tunnel source FastEthernet0/0
+ tunnel destination 10.98.194.1
+ tunnel mode gre ip
+ no shutdown
+exit
+! Mengarahkan blok Balai Kota (10.99.0.0/20) melewati Tunnel0
+ip route 10.99.0.0 255.255.240.0 192.168.12.1
+end
+write memory
+```
+#### Pengujian Soal 6 (Tunneling GRE)
+
+- **Pengujian di CLI Router (`R-PUSAT` dan `R-PELABUHAN`)**
+
+  - Memastikan status interface fisik dan antarmuka virtual `Tunnel0` berada dalam kondisi `up/up`:
+
+    ```show ip interface brief```
+
+    <img width="750" height="auto" alt="Status Tunnel0 R-PUSAT dan R-PELABUHAN" src="img/soal2-6/soal6_01_tunnel_status.png" />
+
+    Dari `show ip interface brief`, terlihat `Tunnel0` pada `R-PUSAT` (`192.168.12.1`) dan `R-PELABUHAN` (`192.168.12.2`) sudah aktif (`up/up`), sehingga terowongan logis antar kedua router siap melewatkan paket.
+
+  - Memastikan tabel routing mengarahkan segmen tujuan melewati interface `Tunnel0`:
+
+    ```show ip route static```
+
+    <img width="750" height="auto" alt="Static Route Tunnel0" src="img/soal2-6/soal6_02_route_tunnel.png" />
+
+    Pada `R-PUSAT` terdapat rute statis menuju jaringan Pelabuhan (`10.96.128.0/17`) via `192.168.12.2`, sedangkan pada `R-PELABUHAN` terdapat rute statis menuju jaringan Balai Kota (`10.99.0.0/20`) via `192.168.12.1`.
+
+- **Pengujian di PC Klien (`PC-Pegawai-Bk` $\leftrightarrow$ `PC-Kantor-Pelabuhan`)**
+
+  - Tes konektivitas antar-LAN melalui Tunnel GRE:
+    Dari `PC-Pegawai-Bk` (`10.99.0.11`) melakukan `ping` ke `PC-Kantor-Pelabuhan` (`10.96.160.11`):
+
+    ```ping 10.96.160.11```
+
+    <img width="750" height="auto" alt="Ping Balai Kota ke Pelabuhan via GRE" src="img/soal2-6/soal6_03_ping_gre.png" />
+
+  - Tes jalur paket (`tracert`) untuk membuktikan enkapsulasi GRE:
+    Dari `PC-Pegawai-Bk` (`10.99.0.11`) ke `PC-Kantor-Pelabuhan` (`10.96.160.11`), paket seharusnya langsung melompat melewati ujung tunnel `192.168.12.2` tanpa menampilkan hop router perantara `R-UTARA`:
+
+    ```tracert 10.96.160.11```
+
+    <img width="750" height="auto" alt="Tracert Balai Kota ke Pelabuhan via GRE" src="img/soal2-6/soal6_04_tracert_gre.png" />
+
+    Dari hasil `tracert` di atas, paket keluar melalui gateway `10.99.0.1` (`R-PUSAT`), lalu langsung melompat ke IP tunnel `192.168.12.2` (`R-PELABUHAN`) dan tiba di `10.96.160.11`. Alamat IP fisik `R-UTARA` (`10.98.194.2` dan `10.96.192.1`) tidak terlihat karena paket terenkapsulasi di dalam header GRE selama melintasi jaringan Utara.
+
+### Soal 7 - Dynamic Routing OSPF & Link Cadangan L7 (`K12_CIDR_OSPF.pkt`)
+
+Pada file terpisah **`K12_CIDR_OSPF.pkt`**, seluruh rute statis antar-cabang dihapus dan digantikan dengan protokol routing dinamis **OSPF Single-Area (`area 0`)** serta ditambahkan tautan cadangan **Link L7 (`10.99.8.32/30`)** antara `R-DC` dan `R-UTARA`[cite: 7].
+
+#### 1. Desain OSPF & Penambahan Link Cadangan L7
+
+| Router | Router-ID | Interface Aktif OSPF (L1–L7) | Passive Interface (LAN / WAN / Tunnel) | Jaringan yang Di-advertise (`area 0`) |
+|---|---|---|---|---|
+| `R-PUSAT` | `1.1.1.1` | `Fa0/1` (L1), `Eth1/0` (L2), `Eth1/1` (L3), `Eth1/2` (L4), `Eth1/3` (L5) | `Fa0/0` (ISP), `Vlan1`, `Vlan20`, `Tunnel0` | L1–L5 (`/30`), `10.99.0.0/21`, `10.99.8.0/27`, + `default-information originate` |
+| `R-DC` | `2.2.2.2` | `Fa0/0` (L1), `Fa7/0` (L7) | `Fa6/0` (CCTV), `Fa1/0` (Server DC) | L1 (`/30`), L7 (`/30`), `10.98.0.0/19`, `10.98.32.0/24` |
+| `R-UTARA` | `3.3.3.3` | `Fa0/0` (L2), `Fa7/0` (L6), `Fa8/0` (L7) | `Fa1/0` (WiFi Utara), `Fa6/0` (Sensor Lalin) | L2 (`/30`), L6 (`/30`), L7 (`/30`), `10.98.128.0/18`, `10.98.192.0/23` |
+| `R-PELABUHAN` | `4.4.4.4` | `Fa0/0` (L6) | `Fa0/1` (SCADA), `Eth1/0` (Kantor), `Tunnel0` | L6 (`/30`), `10.96.128.0/19`, `10.96.160.0/25` |
+| `R-SELATAN` | `5.5.5.5` | `Fa0/0` (L3) | `Fa1/0` (WiFi Selatan), `Fa6/0` (PJU) | L3 (`/30`), `10.97.128.0/19`, `10.97.160.0/25` |
+| `R-TIMUR` | `6.6.6.6` | `Fa0/0` (L4) | `Fa1/0` (WiFi Timur), `Fa6/0` (Sensor Banjir) | L4 (`/30`), `10.97.0.0/19`, `10.97.32.0/22` |
+| `R-BARAT` | `7.7.7.7` | `Fa0/0` (L5) | `Fa1/0` (WiFi Barat), `Fa6/0` (Puskesmas) | L5 (`/30`), `10.96.0.0/19`, `10.96.32.0/24` |
+
+**Pertimbangan Desain OSPF:**
+1. **`passive-interface` pada port LAN, WAN ISP, dan Tunnel:** Mencegah pengiriman paket *OSPF Hello* ke jaringan pengguna akhir serta mencegah terbentuknya *OSPF adjacency* melewati antarmuka `Tunnel0` (yang dapat memicu *recursive routing loop*).
+2. **`default-information originate` pada `R-PUSAT`:** Mendistribusikan rute default (`O*E2 0.0.0.0/0`) secara otomatis ke seluruh router cabang agar akses internet (`8.8.8.8`) tetap berjalan tanpa memerlukan *static default route* di masing-masing cabang.
+3. **Redundansi Link L7 (`R-DC` $\leftrightarrow$ `R-UTARA`):** Menggunakan subnet `10.99.8.32/30` (`10.99.8.33` di `R-DC` `Fa7/0` dan `10.99.8.34` di `R-UTARA` `Fa8/0` via kabel *Copper Cross-Over*) untuk membentuk topologi segitiga antara `R-PUSAT`, `R-DC`, dan `R-UTARA`. Dalam kondisi normal, trafik Utara & Pelabuhan menuju Pusat/Internet melewati **L2** (`cost` lebih kecil), sedangkan saat L2 putus, OSPF otomatis mengalihkan trafik melalui **L7 $\rightarrow$ `R-DC` $\rightarrow$ L1**.
+
+#### 2. Masukkan Skrip OSPF ke Setiap Router
+
+-- Skrip CLI OSPF per Router
+
+```ios
+```
